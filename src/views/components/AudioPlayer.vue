@@ -52,21 +52,40 @@ export default {
   },
   methods: {
     async loadTracks() {
-      const { data: songs, error } = await this.$supabase.from('songs')
-          .select()
-          .eq(`${this.tab}_id`, this.genreId)
-          .order('sort', { ascending: true })
+      if (this.tab === 'track') {
+        const { data: songs, error } = await this.$supabase.from('songs')
+            .select()
+            .order('sort', { ascending: true })
 
-      this.items = []
-      songs.forEach((song) => {
-        this.items.push({
-          id: song.id,
-          uri: song.endpoint,
-          author: song.artistName,
-          name: song.trackName,
-          duration: song.duration,
+        this.items = []
+        songs.forEach((song) => {
+          this.items.push({
+            id: song.id,
+            uri: song.endpoint,
+            author: song.artistName,
+            name: song.trackName,
+            duration: song.duration,
+            start_time: song.start_time,
+          })
         })
-      })
+      } else {
+        const { data: songs, error } = await this.$supabase.from('songs')
+            .select()
+            .eq(`${this.tab}_id`, this.genreId)
+            .order('sort', { ascending: true })
+
+        this.items = []
+        songs.forEach((song) => {
+          this.items.push({
+            id: song.id,
+            uri: song.endpoint,
+            author: song.artistName,
+            name: song.trackName,
+            duration: song.duration,
+            start_time: song.start_time,
+          })
+        })
+      }
     },
     playSong(item) {
       const started = item.isSongStarted
@@ -123,6 +142,7 @@ export default {
       // this.audioSource.addEventListener('loadedmetadata', this.loadedMetaData, false)
       this.currentTime = item.duration
       this.$emit('selectedItem', item)
+      // console.log(item)
       this.currentDuration = 0
       this.maxDuration = 0
       this.audioSource.volume = this.volume
