@@ -11,7 +11,8 @@ import router from './router'
 
 const app = createApp(App)
 app.config.globalProperties.$supabase = createClient(
-    import.meta.env.VITE_PROJECT_URL, import.meta.env.VITE_ANON_KEY
+    'https://lqcqxkbjgpoygmczrlap.supabase.co',
+    import.meta.env.VITE_ANON_KEY
 )
 
 app.use(createPinia())

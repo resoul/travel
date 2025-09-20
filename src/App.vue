@@ -1,14 +1,12 @@
 <script>
-import { container } from "jenesius-vue-modal";
 export default {
-  components: {
-    WidgetContainerModal : container
+  watch: {
+    $route(to) {
+      document.title = to.meta.title || 'App'
+    }
   }
 }
 </script>
 <template>
-  <router-view />
-  <notifications position="bottom right" group="custom" classes="my-notification" />
-  <notifications position="bottom right" group="main" />
-  <widget-container-modal />
+  <component :is="$route.meta.layoutComponent" />
 </template>
