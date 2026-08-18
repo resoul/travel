@@ -29,3 +29,5 @@ coverage
 .env
 *.tsbuildinfo
 package-lock.json
+.cache
+travel
