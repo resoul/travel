@@ -9,16 +9,22 @@ import (
 
 // ListAirportsUseCase handles fetching airports and route maps.
 type ListAirportsUseCase struct {
-	ryanair   domain.RyanairProvider
-	wizzair   domain.WizzairProvider
-	volotea   domain.VoloteaProvider
-	vueling   domain.VuelingProvider
-	flixbus   domain.FlixBusProvider
-	airbaltic domain.AirBalticProvider
-	flyone    domain.FlyOneProvider
-	movacar   domain.MovacarProvider
-	imoova    domain.ImoovaProvider
-	flytap    domain.FlyTapProvider
+	ryanair    domain.RyanairProvider
+	wizzair    domain.WizzairProvider
+	volotea    domain.VoloteaProvider
+	vueling    domain.VuelingProvider
+	flixbus    domain.FlixBusProvider
+	airbaltic  domain.AirBalticProvider
+	flyone     domain.FlyOneProvider
+	movacar    domain.MovacarProvider
+	imoova     domain.ImoovaProvider
+	driiveme   domain.DriiveMeProvider
+	flytap     domain.FlyTapProvider
+	agoda      domain.AgodaProvider
+	tictactrip domain.TictactripProvider
+	trenitalia domain.TrenitaliaProvider
+	eurowings  domain.EurowingsProvider
+	sata       domain.SATAProvider
 }
 
 // NewListAirportsUseCase creates a new ListAirportsUseCase.
@@ -32,19 +38,31 @@ func NewListAirportsUseCase(
 	flyone domain.FlyOneProvider,
 	movacar domain.MovacarProvider,
 	imoova domain.ImoovaProvider,
+	driiveme domain.DriiveMeProvider,
 	flytap domain.FlyTapProvider,
+	agoda domain.AgodaProvider,
+	tictactrip domain.TictactripProvider,
+	trenitalia domain.TrenitaliaProvider,
+	eurowings domain.EurowingsProvider,
+	sata domain.SATAProvider,
 ) *ListAirportsUseCase {
 	return &ListAirportsUseCase{
-		ryanair:   ryanair,
-		wizzair:   wizzair,
-		volotea:   volotea,
-		vueling:   vueling,
-		flixbus:   flixbus,
-		airbaltic: airbaltic,
-		flyone:    flyone,
-		movacar:   movacar,
-		imoova:    imoova,
-		flytap:    flytap,
+		ryanair:    ryanair,
+		wizzair:    wizzair,
+		volotea:    volotea,
+		vueling:    vueling,
+		flixbus:    flixbus,
+		airbaltic:  airbaltic,
+		flyone:     flyone,
+		movacar:    movacar,
+		imoova:     imoova,
+		driiveme:   driiveme,
+		flytap:     flytap,
+		agoda:      agoda,
+		tictactrip: tictactrip,
+		trenitalia: trenitalia,
+		eurowings:  eurowings,
+		sata:       sata,
 	}
 }
 
@@ -162,4 +180,55 @@ func (uc *ListAirportsUseCase) GetFlyTapRoutes(ctx context.Context, originIATA s
 		return nil, fmt.Errorf("origin IATA code is required")
 	}
 	return uc.flytap.GetRoutes(ctx, originIATA)
+}
+
+// GetDriiveMeCities returns matching cities for DriiveMe auto-complete search.
+func (uc *ListAirportsUseCase) GetDriiveMeCities(ctx context.Context, query string) ([]domain.Airport, error) {
+	return uc.driiveme.GetCities(ctx, query)
+}
+
+// GetAgodaCountries returns the full world countries directory from Agoda CDN.
+func (uc *ListAirportsUseCase) GetAgodaCountries(ctx context.Context, languageID int) ([]domain.Country, error) {
+	return uc.agoda.GetCountries(ctx, languageID)
+}
+
+// AutocompleteTictactripCities searches European cities and railway/bus stations on Tictactrip.
+func (uc *ListAirportsUseCase) AutocompleteTictactripCities(ctx context.Context, query string) ([]domain.TictactripCity, error) {
+	return uc.tictactrip.AutocompleteCities(ctx, query)
+}
+
+// GetTictactripPopularDestinations retrieves top destinations from a city on Tictactrip.
+func (uc *ListAirportsUseCase) GetTictactripPopularDestinations(ctx context.Context, fromCity string, limit int) ([]domain.TictactripCity, error) {
+	return uc.tictactrip.GetPopularDestinations(ctx, fromCity, limit)
+}
+
+// GetTrenitaliaStations retrieves the full Italian railway stations catalog from Trenitalia.
+func (uc *ListAirportsUseCase) GetTrenitaliaStations(ctx context.Context) ([]domain.TrenitaliaStation, error) {
+	return uc.trenitalia.GetStations(ctx)
+}
+
+// GetEurowingsAirports retrieves the complete airport directory for Eurowings.
+func (uc *ListAirportsUseCase) GetEurowingsAirports(ctx context.Context) ([]domain.Airport, error) {
+	return uc.eurowings.GetAirports(ctx)
+}
+
+// GetEurowingsRoutesFromOrigin retrieves direct destination airport codes on Eurowings from the given origin.
+func (uc *ListAirportsUseCase) GetEurowingsRoutesFromOrigin(ctx context.Context, origin string) ([]string, error) {
+	if origin == "" {
+		return nil, fmt.Errorf("origin is required")
+	}
+	return uc.eurowings.GetRoutesFromOrigin(ctx, origin)
+}
+
+// GetSATAAirports retrieves all airports served by Azores Airlines / SATA.
+func (uc *ListAirportsUseCase) GetSATAAirports(ctx context.Context) ([]domain.Airport, error) {
+	return uc.sata.GetAirports(ctx)
+}
+
+// GetSATARoutesFromOrigin retrieves direct destination airport codes on Azores Airlines / SATA from the given origin.
+func (uc *ListAirportsUseCase) GetSATARoutesFromOrigin(ctx context.Context, origin string) ([]string, error) {
+	if origin == "" {
+		return nil, fmt.Errorf("origin is required")
+	}
+	return uc.sata.GetRoutesFromOrigin(ctx, origin)
 }

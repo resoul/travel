@@ -9,16 +9,29 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/resoul/travel/internal/infrastructure/agoda"
 	"github.com/resoul/travel/internal/infrastructure/airbaltic"
 	"github.com/resoul/travel/internal/infrastructure/cache"
+	"github.com/resoul/travel/internal/infrastructure/campspace"
 	"github.com/resoul/travel/internal/infrastructure/cruise"
+	"github.com/resoul/travel/internal/infrastructure/driiveme"
+	"github.com/resoul/travel/internal/infrastructure/eurowings"
 	"github.com/resoul/travel/internal/infrastructure/flixbus"
 	"github.com/resoul/travel/internal/infrastructure/flyone"
 	"github.com/resoul/travel/internal/infrastructure/flytap"
+	"github.com/resoul/travel/internal/infrastructure/hipcamp"
 	"github.com/resoul/travel/internal/infrastructure/imoova"
 	"github.com/resoul/travel/internal/infrastructure/indigo"
 	"github.com/resoul/travel/internal/infrastructure/movacar"
+	"github.com/resoul/travel/internal/infrastructure/norwegian"
+	"github.com/resoul/travel/internal/infrastructure/obilet"
+	"github.com/resoul/travel/internal/infrastructure/pitchup"
 	"github.com/resoul/travel/internal/infrastructure/ryanair"
+	"github.com/resoul/travel/internal/infrastructure/sata"
+	"github.com/resoul/travel/internal/infrastructure/tictactrip"
+	"github.com/resoul/travel/internal/infrastructure/transavia"
+	"github.com/resoul/travel/internal/infrastructure/trenitalia"
+	"github.com/resoul/travel/internal/infrastructure/trip"
 	"github.com/resoul/travel/internal/infrastructure/volotea"
 	"github.com/resoul/travel/internal/infrastructure/vueling"
 	"github.com/resoul/travel/internal/infrastructure/wizzair"
@@ -52,14 +65,27 @@ func main() {
 	flyoneClient := flyone.NewClient(cachedTransport)
 	movacarClient := movacar.NewClient(cachedTransport)
 	imoovaClient := imoova.NewClient(cachedTransport)
+	driivemeClient := driiveme.NewClient(cachedTransport)
 	indigoClient := indigo.NewClient(cachedTransport)
 	flytapClient := flytap.NewClient(cachedTransport)
 	cruiseClient := cruise.NewClient(cachedTransport)
+	agodaClient := agoda.NewClient(cachedTransport)
+	tripClient := trip.NewClient(cachedTransport)
+	tictactripClient := tictactrip.NewClient(cachedTransport)
+	trenitaliaClient := trenitalia.NewClient(cachedTransport)
+	norwegianClient := norwegian.NewClient(cachedTransport)
+	obiletClient := obilet.NewClient(cachedTransport)
+	eurowingsClient := eurowings.NewClient(cachedTransport)
+	transaviaClient := transavia.NewClient(cachedTransport)
+	pitchupClient := pitchup.NewClient(cachedTransport)
+	hipcampClient := hipcamp.NewClient(cachedTransport)
+	campspaceClient := campspace.NewClient(cachedTransport)
+	sataClient := sata.NewClient(cachedTransport)
 
 	// 3. Use Case Layer (Application Business Logic)
-	searchUC := usecase.NewSearchFlightsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, cruiseClient)
-	airportsUC := usecase.NewListAirportsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, flytapClient)
-	datesUC := usecase.NewFlightDatesUseCase(ryanairClient, voloteaClient, vuelingClient, airbalticClient, flyoneClient, indigoClient, flytapClient)
+	searchUC := usecase.NewSearchFlightsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, driivemeClient, cruiseClient, agodaClient, tripClient, trenitaliaClient, obiletClient, pitchupClient, hipcampClient, campspaceClient)
+	airportsUC := usecase.NewListAirportsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, driivemeClient, flytapClient, agodaClient, tictactripClient, trenitaliaClient, eurowingsClient, sataClient)
+	datesUC := usecase.NewFlightDatesUseCase(ryanairClient, voloteaClient, vuelingClient, airbalticClient, flyoneClient, indigoClient, flytapClient, tictactripClient, norwegianClient, eurowingsClient, transaviaClient, sataClient)
 
 	// 4. Transport Layer (CLI)
 	presenter := cli.NewPresenter(os.Stdout)

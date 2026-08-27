@@ -9,16 +9,24 @@ import (
 
 // SearchFlightsUseCase handles flight search workflows.
 type SearchFlightsUseCase struct {
-	ryanair   domain.RyanairProvider
-	wizzair   domain.WizzairProvider
-	volotea   domain.VoloteaProvider
-	vueling   domain.VuelingProvider
-	flixbus   domain.FlixBusProvider
-	airbaltic domain.AirBalticProvider
-	flyone    domain.FlyOneProvider
-	movacar   domain.MovacarProvider
-	imoova    domain.ImoovaProvider
-	cruise    domain.CruiseProvider
+	ryanair    domain.RyanairProvider
+	wizzair    domain.WizzairProvider
+	volotea    domain.VoloteaProvider
+	vueling    domain.VuelingProvider
+	flixbus    domain.FlixBusProvider
+	airbaltic  domain.AirBalticProvider
+	flyone     domain.FlyOneProvider
+	movacar    domain.MovacarProvider
+	imoova     domain.ImoovaProvider
+	driiveme   domain.DriiveMeProvider
+	cruise     domain.CruiseProvider
+	agoda      domain.AgodaProvider
+	trip       domain.TripProvider
+	trenitalia domain.TrenitaliaProvider
+	obilet     domain.OBiletProvider
+	pitchup    domain.PitchupProvider
+	hipcamp    domain.HipcampProvider
+	campspace  domain.CampspaceProvider
 }
 
 // NewSearchFlightsUseCase creates a new SearchFlightsUseCase.
@@ -32,19 +40,35 @@ func NewSearchFlightsUseCase(
 	flyone domain.FlyOneProvider,
 	movacar domain.MovacarProvider,
 	imoova domain.ImoovaProvider,
+	driiveme domain.DriiveMeProvider,
 	cruise domain.CruiseProvider,
+	agoda domain.AgodaProvider,
+	trip domain.TripProvider,
+	trenitalia domain.TrenitaliaProvider,
+	obilet domain.OBiletProvider,
+	pitchup domain.PitchupProvider,
+	hipcamp domain.HipcampProvider,
+	campspace domain.CampspaceProvider,
 ) *SearchFlightsUseCase {
 	return &SearchFlightsUseCase{
-		ryanair:   ryanair,
-		wizzair:   wizzair,
-		volotea:   volotea,
-		vueling:   vueling,
-		flixbus:   flixbus,
-		airbaltic: airbaltic,
-		flyone:    flyone,
-		movacar:   movacar,
-		imoova:    imoova,
-		cruise:    cruise,
+		ryanair:    ryanair,
+		wizzair:    wizzair,
+		volotea:    volotea,
+		vueling:    vueling,
+		flixbus:    flixbus,
+		airbaltic:  airbaltic,
+		flyone:     flyone,
+		movacar:    movacar,
+		imoova:     imoova,
+		driiveme:   driiveme,
+		cruise:     cruise,
+		agoda:      agoda,
+		trip:       trip,
+		trenitalia: trenitalia,
+		obilet:     obilet,
+		pitchup:    pitchup,
+		hipcamp:    hipcamp,
+		campspace:  campspace,
 	}
 }
 
@@ -127,6 +151,21 @@ func (uc *SearchFlightsUseCase) SearchImoova(ctx context.Context, criteria domai
 	return uc.imoova.GetOffers(ctx, criteria)
 }
 
+// SearchDriiveMe searches DriiveMe 1-euro car relocation offers matching given criteria.
+func (uc *SearchFlightsUseCase) SearchDriiveMe(ctx context.Context, criteria domain.FlightSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.driiveme.GetOffers(ctx, criteria)
+}
+
+// LoginDriiveMe authenticates with DriiveMe using email and password.
+func (uc *SearchFlightsUseCase) LoginDriiveMe(ctx context.Context, email, password string) error {
+	return uc.driiveme.Login(ctx, email, password)
+}
+
+// GetDriiveMeAvailabilities retrieves booking slot availabilities for a DriiveMe transport ID.
+func (uc *SearchFlightsUseCase) GetDriiveMeAvailabilities(ctx context.Context, transportID string) ([]string, error) {
+	return uc.driiveme.GetAvailabilities(ctx, transportID)
+}
+
 // SearchCruises searches available cruises matching given criteria.
 func (uc *SearchFlightsUseCase) SearchCruises(ctx context.Context, criteria domain.CruiseSearchCriteria) ([]domain.FlightOffer, error) {
 	return uc.cruise.SearchCruises(ctx, criteria)
@@ -140,4 +179,49 @@ func (uc *SearchFlightsUseCase) GetCruiseLines(ctx context.Context) ([]domain.Cr
 // GetCruiseDestinations retrieves all available cruising destination regions from the matrix.
 func (uc *SearchFlightsUseCase) GetCruiseDestinations(ctx context.Context) ([]domain.CruiseDestination, error) {
 	return uc.cruise.GetCruiseDestinations(ctx)
+}
+
+// SearchAgodaHotels searches accommodations on Agoda matching given criteria.
+func (uc *SearchFlightsUseCase) SearchAgodaHotels(ctx context.Context, criteria domain.HotelSearchCriteria) ([]domain.HotelOffer, error) {
+	return uc.agoda.SearchHotels(ctx, criteria)
+}
+
+// SearchTripHotels searches accommodations on Trip.com matching given criteria.
+func (uc *SearchFlightsUseCase) SearchTripHotels(ctx context.Context, criteria domain.HotelSearchCriteria) ([]domain.HotelOffer, error) {
+	return uc.trip.SearchHotels(ctx, criteria)
+}
+
+// GetTripHotelDetails retrieves all room options and details for a Trip.com hotel ID.
+func (uc *SearchFlightsUseCase) GetTripHotelDetails(ctx context.Context, hotelID, checkIn, checkOut string, adults, rooms int, currency string) ([]domain.TripRoomOffer, error) {
+	return uc.trip.GetHotelDetails(ctx, hotelID, checkIn, checkOut, adults, rooms, currency)
+}
+
+// SearchTripCars searches rental cars on Trip.com matching given criteria.
+func (uc *SearchFlightsUseCase) SearchTripCars(ctx context.Context, criteria domain.CarHireCriteria) ([]domain.CarHireOffer, error) {
+	return uc.trip.SearchCars(ctx, criteria)
+}
+
+// SearchTrenitaliaTrains searches Italian trains and Le Frecce high-speed rail on Trenitalia.
+func (uc *SearchFlightsUseCase) SearchTrenitaliaTrains(ctx context.Context, criteria domain.TrenitaliaSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.trenitalia.SearchTrains(ctx, criteria)
+}
+
+// SearchOBiletBuses searches bus journeys in Turkey and regional routes on oBilet.
+func (uc *SearchFlightsUseCase) SearchOBiletBuses(ctx context.Context, criteria domain.OBiletSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.obilet.SearchBuses(ctx, criteria)
+}
+
+// SearchPitchupCampsites searches campsites, glamping, and holiday parks on Pitchup.
+func (uc *SearchFlightsUseCase) SearchPitchupCampsites(ctx context.Context, criteria domain.PitchupSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.pitchup.SearchCampsites(ctx, criteria)
+}
+
+// SearchHipcampSpots searches outdoor camping and glamping spots on Hipcamp.
+func (uc *SearchFlightsUseCase) SearchHipcampSpots(ctx context.Context, criteria domain.HipcampSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.hipcamp.SearchSpots(ctx, criteria)
+}
+
+// SearchCampspaceSpots searches sustainable micro-camping and nature spots on Campspace.
+func (uc *SearchFlightsUseCase) SearchCampspaceSpots(ctx context.Context, criteria domain.CampspaceSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.campspace.SearchSpots(ctx, criteria)
 }

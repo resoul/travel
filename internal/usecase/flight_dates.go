@@ -9,13 +9,18 @@ import (
 
 // FlightDatesUseCase handles queries for available flight schedules.
 type FlightDatesUseCase struct {
-	ryanair   domain.RyanairProvider
-	volotea   domain.VoloteaProvider
-	vueling   domain.VuelingProvider
-	airbaltic domain.AirBalticProvider
-	flyone    domain.FlyOneProvider
-	indigo    domain.IndiGoProvider
-	flytap    domain.FlyTapProvider
+	ryanair    domain.RyanairProvider
+	volotea    domain.VoloteaProvider
+	vueling    domain.VuelingProvider
+	airbaltic  domain.AirBalticProvider
+	flyone     domain.FlyOneProvider
+	indigo     domain.IndiGoProvider
+	flytap     domain.FlyTapProvider
+	tictactrip domain.TictactripProvider
+	norwegian  domain.NorwegianProvider
+	eurowings  domain.EurowingsProvider
+	transavia  domain.TransaviaProvider
+	sata       domain.SATAProvider
 }
 
 // NewFlightDatesUseCase creates a new FlightDatesUseCase.
@@ -27,15 +32,25 @@ func NewFlightDatesUseCase(
 	flyone domain.FlyOneProvider,
 	indigo domain.IndiGoProvider,
 	flytap domain.FlyTapProvider,
+	tictactrip domain.TictactripProvider,
+	norwegian domain.NorwegianProvider,
+	eurowings domain.EurowingsProvider,
+	transavia domain.TransaviaProvider,
+	sata domain.SATAProvider,
 ) *FlightDatesUseCase {
 	return &FlightDatesUseCase{
-		ryanair:   ryanair,
-		volotea:   volotea,
-		vueling:   vueling,
-		airbaltic: airbaltic,
-		flyone:    flyone,
-		indigo:    indigo,
-		flytap:    flytap,
+		ryanair:    ryanair,
+		volotea:    volotea,
+		vueling:    vueling,
+		airbaltic:  airbaltic,
+		flyone:     flyone,
+		indigo:     indigo,
+		flytap:     flytap,
+		tictactrip: tictactrip,
+		norwegian:  norwegian,
+		eurowings:  eurowings,
+		transavia:  transavia,
+		sata:       sata,
 	}
 }
 
@@ -119,6 +134,11 @@ func (uc *FlightDatesUseCase) GetIndiGoFareRadar(ctx context.Context, origin str
 	return uc.indigo.GetFareRadar(ctx, origin)
 }
 
+// GetTictactripMonthlyPriceCalendar retrieves the lowest train/bus prices for every day of a month on Tictactrip.
+func (uc *FlightDatesUseCase) GetTictactripMonthlyPriceCalendar(ctx context.Context, originID, destinationID int, month string) ([]domain.TictactripCalendarDay, error) {
+	return uc.tictactrip.GetMonthlyPriceCalendar(ctx, originID, destinationID, month)
+}
+
 // GetFlyTapCalendar returns date-by-date low fares for a specific month and year from TAP Air Portugal.
 func (uc *FlightDatesUseCase) GetFlyTapCalendar(ctx context.Context, origin, destination string, year, month int, market string) ([]domain.FlightOffer, error) {
 	if origin == "" || destination == "" {
@@ -127,10 +147,42 @@ func (uc *FlightDatesUseCase) GetFlyTapCalendar(ctx context.Context, origin, des
 	return uc.flytap.GetCalendar(ctx, origin, destination, year, month, market)
 }
 
+// GetNorwegianFareCalendar retrieves the lowest flight fares across a month from Norwegian Air Shuttle.
+func (uc *FlightDatesUseCase) GetNorwegianFareCalendar(ctx context.Context, origin, destination string, year, month int, currency string) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.norwegian.GetFareCalendar(ctx, origin, destination, year, month, currency)
+}
+
 // GetFlyTapDates returns scheduled flight dates between origin and destination from TAP Air Portugal.
 func (uc *FlightDatesUseCase) GetFlyTapDates(ctx context.Context, origin, destination string) ([]string, error) {
 	if origin == "" || destination == "" {
 		return nil, fmt.Errorf("origin and destination are required")
 	}
 	return uc.flytap.GetDates(ctx, origin, destination)
+}
+
+// GetEurowingsDates retrieves scheduled flight dates between origin and destination from Eurowings.
+func (uc *FlightDatesUseCase) GetEurowingsDates(ctx context.Context, origin, destination string) ([]string, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.eurowings.GetFlightDates(ctx, origin, destination)
+}
+
+// GetTransaviaFareCalendar returns daily lowest fares for a given route and month from Transavia.
+func (uc *FlightDatesUseCase) GetTransaviaFareCalendar(ctx context.Context, origin, destination string, year, month, adults int) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.transavia.GetFareCalendar(ctx, origin, destination, year, month, adults)
+}
+
+// GetSATAFareCalendar returns daily lowest fares across available future dates from Azores Airlines / SATA.
+func (uc *FlightDatesUseCase) GetSATAFareCalendar(ctx context.Context, origin, destination string) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.sata.GetFareCalendar(ctx, origin, destination)
 }
