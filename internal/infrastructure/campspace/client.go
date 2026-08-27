@@ -1,0 +1,179 @@
+package campspace
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/chromedp/chromedp"
+	"github.com/resoul/travel/internal/domain"
+)
+
+var _ domain.CampspaceProvider = (*Client)(nil)
+
+// Client handles Campspace micro-camping spots search via Chromedp headless automation.
+type Client struct {
+	http *http.Client
+}
+
+// NewClient creates a new Campspace client.
+func NewClient(transport ...http.RoundTripper) *Client {
+	var tr http.RoundTripper
+	if len(transport) > 0 && transport[0] != nil {
+		tr = transport[0]
+	}
+
+	return &Client{
+		http: &http.Client{
+			Transport: tr,
+			Timeout:   15 * time.Second,
+		},
+	}
+}
+
+type rawCampspaceSpot struct {
+	Name     string `json:"name"`
+	Location string `json:"location"`
+	Rating   string `json:"rating"`
+	Price    string `json:"price"`
+	Type     string `json:"type"`
+}
+
+// SearchSpots searches sustainable micro-camping spots, camper sites, and glamping on Campspace.
+func (c *Client) SearchSpots(ctx context.Context, criteria domain.CampspaceSearchCriteria) ([]domain.FlightOffer, error) {
+	category := strings.ToLower(strings.TrimSpace(criteria.Category))
+	if category == "" {
+		category = "tent-pitches"
+	}
+	category = strings.ReplaceAll(category, " ", "-")
+
+	targetURL := fmt.Sprintf("https://campspace.com/en/discover/%s", category)
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+		chromedp.Flag("headless", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-blink-features", "AutomationControlled"),
+	)
+
+	allocCtx, cancelAlloc := chromedp.NewExecAllocator(ctx, opts...)
+	defer cancelAlloc()
+
+	chromCtx, cancelChrom := chromedp.NewContext(allocCtx)
+	defer cancelChrom()
+
+	timeoutCtx, cancelTimeout := context.WithTimeout(chromCtx, 35*time.Second)
+	defer cancelTimeout()
+
+	var rawList []rawCampspaceSpot
+
+	const extractJS = `
+	(() => {
+		const results = [];
+		const anchors = document.querySelectorAll("a[href*='/space/'], a[href*='/campspace/'], article");
+		const seen = new Set();
+
+		anchors.forEach(a => {
+			const text = a.innerText.trim();
+			const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+			if (lines.length === 0) return;
+
+			const name = lines[0];
+			if (seen.has(name) || name.length < 3 || name.startsWith("This website") || name.includes("Oops!")) return;
+			seen.add(name);
+
+			let location = "";
+			let rating = "";
+			let price = "";
+
+			for (const l of lines) {
+				if (l.includes("★") || l.match(/\d(\.\d)?\s*\(\d+\)/)) {
+					rating = l;
+				} else if (l.includes("€") || l.includes("£") || l.includes("$") || l.includes("/night")) {
+					price = l;
+				} else if (location === "" && l !== name && !l.includes("Show") && !l.includes("book")) {
+					location = l;
+				}
+			}
+
+			results.push({
+				name: name,
+				location: location,
+				rating: rating,
+				price: price,
+				type: "Micro-Camping"
+			});
+		});
+
+		return results;
+	})()
+	`
+
+	err := chromedp.Run(timeoutCtx,
+		chromedp.Navigate(targetURL),
+		chromedp.Sleep(6*time.Second),
+		chromedp.Evaluate(extractJS, &rawList),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract spots from Campspace: %w", err)
+	}
+
+	limit := criteria.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+
+	priceRegex := regexp.MustCompile(`([\d.,]+)`)
+
+	offers := make([]domain.FlightOffer, 0, len(rawList))
+	for _, item := range rawList {
+		if len(offers) >= limit {
+			break
+		}
+
+		currency := "EUR"
+		if strings.Contains(item.Price, "£") {
+			currency = "GBP"
+		} else if strings.Contains(item.Price, "$") {
+			currency = "USD"
+		}
+
+		m := priceRegex.FindString(item.Price)
+		amount := 0.0
+		if m != "" {
+			cleanStr := strings.ReplaceAll(m, ",", "")
+			amount, _ = strconv.ParseFloat(cleanStr, 64)
+		}
+
+		ratingInfo := ""
+		if item.Rating != "" {
+			ratingInfo = fmt.Sprintf(" (%s)", item.Rating)
+		}
+
+		now := time.Now()
+
+		offers = append(offers, domain.FlightOffer{
+			TransportType:    domain.TransportTypeHotel,
+			Airline:          "Campspace",
+			FlightNumber:     fmt.Sprintf("🌿 %s%s", item.Name, ratingInfo),
+			DepartureStation: item.Location,
+			ArrivalStation:   strings.Title(strings.ReplaceAll(category, "-", " ")),
+			DepartureTime:    &now,
+			DepartureRaw:     category,
+			Price: domain.Price{
+				Amount:   amount,
+				Currency: currency,
+			},
+			IsAvailable: true,
+			Status:      "AVAILABLE",
+		})
+	}
+
+	return offers, nil
+}
