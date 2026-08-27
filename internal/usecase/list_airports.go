@@ -18,6 +18,7 @@ type ListAirportsUseCase struct {
 	flyone    domain.FlyOneProvider
 	movacar   domain.MovacarProvider
 	imoova    domain.ImoovaProvider
+	flytap    domain.FlyTapProvider
 }
 
 // NewListAirportsUseCase creates a new ListAirportsUseCase.
@@ -31,6 +32,7 @@ func NewListAirportsUseCase(
 	flyone domain.FlyOneProvider,
 	movacar domain.MovacarProvider,
 	imoova domain.ImoovaProvider,
+	flytap domain.FlyTapProvider,
 ) *ListAirportsUseCase {
 	return &ListAirportsUseCase{
 		ryanair:   ryanair,
@@ -42,6 +44,7 @@ func NewListAirportsUseCase(
 		flyone:    flyone,
 		movacar:   movacar,
 		imoova:    imoova,
+		flytap:    flytap,
 	}
 }
 
@@ -146,4 +149,17 @@ func (uc *ListAirportsUseCase) GetImoovaLocations(ctx context.Context) ([]domain
 // GetImoovaRegions returns deal counts per region (US, CA, EU, AU, NZ, SA) from imoova.
 func (uc *ListAirportsUseCase) GetImoovaRegions(ctx context.Context) ([]domain.Country, error) {
 	return uc.imoova.GetRegions(ctx)
+}
+
+// GetFlyTapAirports returns operating origin airports in the TAP Air Portugal network.
+func (uc *ListAirportsUseCase) GetFlyTapAirports(ctx context.Context) ([]domain.Airport, error) {
+	return uc.flytap.GetAirports(ctx)
+}
+
+// GetFlyTapRoutes returns destination airports reachable from an origin airport in TAP Air Portugal network.
+func (uc *ListAirportsUseCase) GetFlyTapRoutes(ctx context.Context, originIATA string) ([]domain.Airport, error) {
+	if originIATA == "" {
+		return nil, fmt.Errorf("origin IATA code is required")
+	}
+	return uc.flytap.GetRoutes(ctx, originIATA)
 }

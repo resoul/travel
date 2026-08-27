@@ -14,6 +14,8 @@ type FlightDatesUseCase struct {
 	vueling   domain.VuelingProvider
 	airbaltic domain.AirBalticProvider
 	flyone    domain.FlyOneProvider
+	indigo    domain.IndiGoProvider
+	flytap    domain.FlyTapProvider
 }
 
 // NewFlightDatesUseCase creates a new FlightDatesUseCase.
@@ -23,6 +25,8 @@ func NewFlightDatesUseCase(
 	vueling domain.VuelingProvider,
 	airbaltic domain.AirBalticProvider,
 	flyone domain.FlyOneProvider,
+	indigo domain.IndiGoProvider,
+	flytap domain.FlyTapProvider,
 ) *FlightDatesUseCase {
 	return &FlightDatesUseCase{
 		ryanair:   ryanair,
@@ -30,6 +34,8 @@ func NewFlightDatesUseCase(
 		vueling:   vueling,
 		airbaltic: airbaltic,
 		flyone:    flyone,
+		indigo:    indigo,
+		flytap:    flytap,
 	}
 }
 
@@ -87,4 +93,44 @@ func (uc *FlightDatesUseCase) GetFlyOneDates(ctx context.Context, origin, destin
 		return nil, fmt.Errorf("origin and destination are required")
 	}
 	return uc.flyone.GetDates(ctx, origin, destination)
+}
+
+// GetIndiGoDates returns scheduled flight dates between origin and destination.
+func (uc *FlightDatesUseCase) GetIndiGoDates(ctx context.Context, origin, destination string) ([]string, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.indigo.GetDates(ctx, origin, destination)
+}
+
+// GetIndiGoFareCalendar returns date-by-date low fares between origin and destination.
+func (uc *FlightDatesUseCase) GetIndiGoFareCalendar(ctx context.Context, origin, destination, startDate, endDate, currency string) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.indigo.GetFareCalendar(ctx, origin, destination, startDate, endDate, currency)
+}
+
+// GetIndiGoFareRadar returns lowest fares and destination suggestions from an origin airport.
+func (uc *FlightDatesUseCase) GetIndiGoFareRadar(ctx context.Context, origin string) ([]domain.IndiGoRadarFare, error) {
+	if origin == "" {
+		return nil, fmt.Errorf("origin is required")
+	}
+	return uc.indigo.GetFareRadar(ctx, origin)
+}
+
+// GetFlyTapCalendar returns date-by-date low fares for a specific month and year from TAP Air Portugal.
+func (uc *FlightDatesUseCase) GetFlyTapCalendar(ctx context.Context, origin, destination string, year, month int, market string) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.flytap.GetCalendar(ctx, origin, destination, year, month, market)
+}
+
+// GetFlyTapDates returns scheduled flight dates between origin and destination from TAP Air Portugal.
+func (uc *FlightDatesUseCase) GetFlyTapDates(ctx context.Context, origin, destination string) ([]string, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.flytap.GetDates(ctx, origin, destination)
 }

@@ -40,6 +40,9 @@ func NewCLI(
 	rootCmd.AddCommand(newFlyOneCmd(searchUC, airportsUC, datesUC, presenter))
 	rootCmd.AddCommand(newMovacarCmd(searchUC, airportsUC, presenter))
 	rootCmd.AddCommand(newImoovaCmd(searchUC, airportsUC, presenter))
+	rootCmd.AddCommand(newIndiGoCmd(datesUC, presenter))
+	rootCmd.AddCommand(newFlyTapCmd(airportsUC, datesUC, presenter))
+	rootCmd.AddCommand(newCruiseCmd(searchUC, presenter))
 
 	if fileCache != nil {
 		rootCmd.AddCommand(newCacheCmd(fileCache, cacheDir))

@@ -16,6 +16,7 @@ const (
 	TransportTypeBus    TransportType = "Bus"
 	TransportTypeTrain  TransportType = "Train"
 	TransportTypeCar    TransportType = "Car"
+	TransportTypeCruise TransportType = "Cruise"
 )
 
 // FlightOffer represents a travel offer option found across airlines and ground operators.
@@ -61,4 +62,27 @@ type WizzairSearchCriteria struct {
 	Children         int
 	Infants          int
 	PriceType        string
+}
+
+// CruiseSearchCriteria defines search parameters for cruise searches.
+type CruiseSearchCriteria struct {
+	DestinationID string
+	CruiseLineID  string
+	Month         int
+	Year          int
+	DurationMin   int
+	DurationMax   int
+	Limit         int
+}
+
+// CruiseLine represents a cruise operator in the matrix.
+type CruiseLine struct {
+	ID   int
+	Name string
+}
+
+// CruiseDestination represents a destination region in the matrix.
+type CruiseDestination struct {
+	ID   int
+	Name string
 }

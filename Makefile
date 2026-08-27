@@ -92,4 +92,46 @@ movacar-offers: ## Search Movacar 1-euro car relocations (e.g. make movacar-offe
 imoova-offers: ## Search imoova 1-dollar campervan relocations (e.g. make imoova-offers FROM=Vancouver TO="San Francisco")
 	@go run ./cmd imoova search $(if $(FROM),--from "$(FROM)",) $(if $(TO),--to "$(TO)",) $(if $(DATE),--date $(DATE),)
 
+.PHONY: indigo-radar
+indigo-radar: ## Get IndiGo lowest fare recommendations from origin (e.g. make indigo-radar ORIGIN=DEL)
+	@go run ./cmd indigo radar $(or $(ORIGIN),DEL)
+
+.PHONY: indigo-calendar
+indigo-calendar: ## Search IndiGo date-by-date fare calendar (e.g. make indigo-calendar ORIGIN=DXB DEST=DEL CURRENCY=AED)
+	@go run ./cmd indigo calendar --origin $(or $(ORIGIN),DXB) --destination $(or $(DEST),DEL) $(if $(CURRENCY),--currency $(CURRENCY),) $(if $(START_DATE),--start-date $(START_DATE),) $(if $(END_DATE),--end-date $(END_DATE),)
+
+.PHONY: indigo-dates
+indigo-dates: ## List scheduled IndiGo flight dates (e.g. make indigo-dates ORIGIN=DXB DEST=DEL)
+	@go run ./cmd indigo dates $(or $(ORIGIN),DXB) $(or $(DEST),DEL)
+
+.PHONY: tap-airports
+tap-airports: ## List all TAP Air Portugal origin airports (e.g. make tap-airports)
+	@go run ./cmd tap airports
+
+.PHONY: tap-routes
+tap-routes: ## List TAP destination airports from origin (e.g. make tap-routes ORIGIN=LIS)
+	@go run ./cmd tap routes $(or $(ORIGIN),LIS)
+
+.PHONY: tap-calendar
+tap-calendar: ## Search TAP date-by-date fare calendar (e.g. make tap-calendar ORIGIN=LIS DEST=BCN MONTH=9 YEAR=2026)
+	@go run ./cmd tap calendar --origin $(or $(ORIGIN),LIS) --destination $(or $(DEST),BCN) $(if $(MONTH),--month $(MONTH),) $(if $(YEAR),--year $(YEAR),) $(if $(MARKET),--market $(MARKET),)
+
+.PHONY: tap-dates
+tap-dates: ## List scheduled TAP flight dates (e.g. make tap-dates ORIGIN=LIS DEST=BCN)
+	@go run ./cmd tap dates $(or $(ORIGIN),LIS) $(or $(DEST),BCN)
+
+.PHONY: cruise-search
+cruise-search: ## Search cruises (e.g. make cruise-search DESTINATION=54 MONTH=11 YEAR=2026 LIMIT=10)
+	@go run ./cmd cruise search $(if $(DESTINATION),--destination $(DESTINATION),) $(if $(LINE),--cruise-line $(LINE),) $(if $(MONTH),--month $(MONTH),) $(if $(YEAR),--year $(YEAR),) $(if $(LIMIT),--limit $(LIMIT),)
+
+.PHONY: cruise-lines
+cruise-lines: ## List all cruise operators and matrix IDs (e.g. make cruise-lines)
+	@go run ./cmd cruise lines
+
+.PHONY: cruise-destinations
+cruise-destinations: ## List all cruise destination regions and matrix IDs (e.g. make cruise-destinations)
+	@go run ./cmd cruise destinations
+
+
+
 

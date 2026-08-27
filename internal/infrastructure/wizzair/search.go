@@ -47,7 +47,7 @@ func (c *Client) SearchFlights(ctx context.Context, criteria domain.WizzairSearc
 		return nil, fmt.Errorf("failed to marshal search payload: %w", err)
 	}
 
-	apiURL := buildURL + "/Api/search/timetableV2"
+	apiURL := buildURL + "/Api/search/timetable"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create search request: %w", err)
@@ -55,7 +55,7 @@ func (c *Client) SearchFlights(ctx context.Context, criteria domain.WizzairSearc
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -74,6 +74,16 @@ func (c *Client) SearchFlights(ctx context.Context, criteria domain.WizzairSearc
 
 	var offers []domain.FlightOffer
 	for _, f := range result.OutboundFlights {
+		amount := f.Price.Amount
+		curr := f.Price.CurrencyCode
+		if amount <= 0 && f.OriginalPrice.Amount > 0 {
+			amount = f.OriginalPrice.Amount
+			curr = f.OriginalPrice.CurrencyCode
+		}
+		if amount <= 0 {
+			continue
+		}
+
 		offers = append(offers, domain.FlightOffer{
 			TransportType:    domain.TransportTypeFlight,
 			Airline:          "Wizzair",
@@ -81,8 +91,8 @@ func (c *Client) SearchFlights(ctx context.Context, criteria domain.WizzairSearc
 			ArrivalStation:   f.ArrivalStation,
 			DepartureRaw:     f.DepartureDate,
 			Price: domain.Price{
-				Amount:   f.Price.Amount,
-				Currency: f.Price.CurrencyCode,
+				Amount:   amount,
+				Currency: curr,
 			},
 			IsAvailable: true,
 			Status:      "available",

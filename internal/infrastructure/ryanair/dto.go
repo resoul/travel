@@ -130,3 +130,36 @@ type availabilityResponseDTO struct {
 	Currency string       `json:"currency"`
 	Trips    []rawTripDTO `json:"trips"`
 }
+
+// --- Farfnd API DTOs ---
+
+type farfndAirportDTO struct {
+	CountryName string `json:"countryName"`
+	IataCode    string `json:"iataCode"`
+	Name        string `json:"name"`
+	SeoName     string `json:"seoName"`
+}
+
+type farfndPriceDTO struct {
+	Value        float64 `json:"value"`
+	CurrencyCode string  `json:"currencyCode"`
+}
+
+type farfndOutboundDTO struct {
+	DepartureAirport farfndAirportDTO `json:"departureAirport"`
+	ArrivalAirport   farfndAirportDTO `json:"arrivalAirport"`
+	DepartureDate    string           `json:"departureDate"`
+	ArrivalDate      string           `json:"arrivalDate"`
+	Price            farfndPriceDTO   `json:"price"`
+	FlightKey        string           `json:"flightKey"`
+	FlightNumber     string           `json:"flightNumber"`
+}
+
+type farfndFareItemDTO struct {
+	Outbound farfndOutboundDTO `json:"outbound"`
+}
+
+type farfndResponseDTO struct {
+	Fares []farfndFareItemDTO `json:"fares"`
+	Total int                 `json:"total"`
+}

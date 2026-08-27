@@ -18,6 +18,7 @@ type SearchFlightsUseCase struct {
 	flyone    domain.FlyOneProvider
 	movacar   domain.MovacarProvider
 	imoova    domain.ImoovaProvider
+	cruise    domain.CruiseProvider
 }
 
 // NewSearchFlightsUseCase creates a new SearchFlightsUseCase.
@@ -31,6 +32,7 @@ func NewSearchFlightsUseCase(
 	flyone domain.FlyOneProvider,
 	movacar domain.MovacarProvider,
 	imoova domain.ImoovaProvider,
+	cruise domain.CruiseProvider,
 ) *SearchFlightsUseCase {
 	return &SearchFlightsUseCase{
 		ryanair:   ryanair,
@@ -42,6 +44,7 @@ func NewSearchFlightsUseCase(
 		flyone:    flyone,
 		movacar:   movacar,
 		imoova:    imoova,
+		cruise:    cruise,
 	}
 }
 
@@ -122,4 +125,19 @@ func (uc *SearchFlightsUseCase) SearchMovacar(ctx context.Context, criteria doma
 // SearchImoova searches imoova campervan relocation offers matching given criteria.
 func (uc *SearchFlightsUseCase) SearchImoova(ctx context.Context, criteria domain.FlightSearchCriteria) ([]domain.FlightOffer, error) {
 	return uc.imoova.GetOffers(ctx, criteria)
+}
+
+// SearchCruises searches available cruises matching given criteria.
+func (uc *SearchFlightsUseCase) SearchCruises(ctx context.Context, criteria domain.CruiseSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.cruise.SearchCruises(ctx, criteria)
+}
+
+// GetCruiseLines retrieves all available cruise lines from the matrix.
+func (uc *SearchFlightsUseCase) GetCruiseLines(ctx context.Context) ([]domain.CruiseLine, error) {
+	return uc.cruise.GetCruiseLines(ctx)
+}
+
+// GetCruiseDestinations retrieves all available cruising destination regions from the matrix.
+func (uc *SearchFlightsUseCase) GetCruiseDestinations(ctx context.Context) ([]domain.CruiseDestination, error) {
+	return uc.cruise.GetCruiseDestinations(ctx)
 }

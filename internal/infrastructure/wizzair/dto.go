@@ -50,6 +50,8 @@ type flightResultDTO struct {
 	DepartureStation string   `json:"departureStation"`
 	DepartureDate    string   `json:"departureDate"`
 	Price            priceDTO `json:"price"`
+	OriginalPrice    priceDTO `json:"originalPrice"`
+	PriceType        string   `json:"priceType"`
 }
 
 type timetableResponseDTO struct {

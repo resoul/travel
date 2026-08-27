@@ -11,9 +11,12 @@ import (
 
 	"github.com/resoul/travel/internal/infrastructure/airbaltic"
 	"github.com/resoul/travel/internal/infrastructure/cache"
+	"github.com/resoul/travel/internal/infrastructure/cruise"
 	"github.com/resoul/travel/internal/infrastructure/flixbus"
 	"github.com/resoul/travel/internal/infrastructure/flyone"
+	"github.com/resoul/travel/internal/infrastructure/flytap"
 	"github.com/resoul/travel/internal/infrastructure/imoova"
+	"github.com/resoul/travel/internal/infrastructure/indigo"
 	"github.com/resoul/travel/internal/infrastructure/movacar"
 	"github.com/resoul/travel/internal/infrastructure/ryanair"
 	"github.com/resoul/travel/internal/infrastructure/volotea"
@@ -49,11 +52,14 @@ func main() {
 	flyoneClient := flyone.NewClient(cachedTransport)
 	movacarClient := movacar.NewClient(cachedTransport)
 	imoovaClient := imoova.NewClient(cachedTransport)
+	indigoClient := indigo.NewClient(cachedTransport)
+	flytapClient := flytap.NewClient(cachedTransport)
+	cruiseClient := cruise.NewClient(cachedTransport)
 
 	// 3. Use Case Layer (Application Business Logic)
-	searchUC := usecase.NewSearchFlightsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient)
-	airportsUC := usecase.NewListAirportsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient)
-	datesUC := usecase.NewFlightDatesUseCase(ryanairClient, voloteaClient, vuelingClient, airbalticClient, flyoneClient)
+	searchUC := usecase.NewSearchFlightsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, cruiseClient)
+	airportsUC := usecase.NewListAirportsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, flytapClient)
+	datesUC := usecase.NewFlightDatesUseCase(ryanairClient, voloteaClient, vuelingClient, airbalticClient, flyoneClient, indigoClient, flytapClient)
 
 	// 4. Transport Layer (CLI)
 	presenter := cli.NewPresenter(os.Stdout)

@@ -132,3 +132,54 @@ func (p *Presenter) PrintCountries(countries []domain.Country) {
 		}
 	}
 }
+
+// PrintIndiGoRadar prints fare radar results from IndiGo.
+func (p *Presenter) PrintIndiGoRadar(radarFares []domain.IndiGoRadarFare) {
+	if len(radarFares) == 0 {
+		fmt.Fprintln(p.out, "No radar fares found.")
+		return
+	}
+
+	first := radarFares[0]
+	fmt.Fprintf(p.out, "IndiGo Fare Radar from %s (%s) on %s:\n", first.Origin, first.OriginCity, first.TravelDate)
+	for _, f := range radarFares {
+		timeStr := ""
+		if f.FlightTime != "" {
+			timeStr = fmt.Sprintf(" | %s", f.FlightTime)
+		}
+		fmt.Fprintf(
+			p.out,
+			"  %s -> [%s] %s%s | %.2f %s\n",
+			f.Origin,
+			f.Destination,
+			f.DestCity,
+			timeStr,
+			f.Price.Amount,
+			f.Price.Currency,
+		)
+	}
+}
+
+// PrintCruiseLines prints a formatted list of cruise lines and their matrix IDs.
+func (p *Presenter) PrintCruiseLines(lines []domain.CruiseLine) {
+	if len(lines) == 0 {
+		fmt.Fprintln(p.out, "No cruise lines found.")
+		return
+	}
+
+	for _, l := range lines {
+		fmt.Fprintf(p.out, "[ID: %3d] %s\n", l.ID, l.Name)
+	}
+}
+
+// PrintCruiseDestinations prints a formatted list of cruise destination regions and their matrix IDs.
+func (p *Presenter) PrintCruiseDestinations(destinations []domain.CruiseDestination) {
+	if len(destinations) == 0 {
+		fmt.Fprintln(p.out, "No cruise destinations found.")
+		return
+	}
+
+	for _, d := range destinations {
+		fmt.Fprintf(p.out, "[ID: %3d] %s\n", d.ID, d.Name)
+	}
+}

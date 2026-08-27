@@ -70,3 +70,36 @@ type ImoovaProvider interface {
 	GetLocations(ctx context.Context) ([]Airport, error)
 	GetRegions(ctx context.Context) ([]Country, error)
 }
+
+// IndiGoRadarFare represents a destination fare returned by IndiGo fare radar.
+type IndiGoRadarFare struct {
+	Origin      string
+	OriginCity  string
+	Destination string
+	DestCity    string
+	TravelDate  string
+	FlightTime  string
+	Price       Price
+}
+
+// IndiGoProvider defines operations supported by IndiGo integration.
+type IndiGoProvider interface {
+	GetFareRadar(ctx context.Context, originIATA string) ([]IndiGoRadarFare, error)
+	GetFareCalendar(ctx context.Context, origin, destination, startDate, endDate, currency string) ([]FlightOffer, error)
+	GetDates(ctx context.Context, origin, destination string) ([]string, error)
+}
+
+// FlyTapProvider defines operations supported by TAP Air Portugal integration.
+type FlyTapProvider interface {
+	GetAirports(ctx context.Context) ([]Airport, error)
+	GetRoutes(ctx context.Context, originIATA string) ([]Airport, error)
+	GetCalendar(ctx context.Context, origin, destination string, year, month int, market string) ([]FlightOffer, error)
+	GetDates(ctx context.Context, origin, destination string) ([]string, error)
+}
+
+// CruiseProvider defines operations supported by Cruise integration.
+type CruiseProvider interface {
+	SearchCruises(ctx context.Context, criteria CruiseSearchCriteria) ([]FlightOffer, error)
+	GetCruiseLines(ctx context.Context) ([]CruiseLine, error)
+	GetCruiseDestinations(ctx context.Context) ([]CruiseDestination, error)
+}
