@@ -25,6 +25,7 @@ type ListAirportsUseCase struct {
 	trenitalia domain.TrenitaliaProvider
 	eurowings  domain.EurowingsProvider
 	sata       domain.SATAProvider
+	level      domain.LevelProvider
 }
 
 // NewListAirportsUseCase creates a new ListAirportsUseCase.
@@ -45,6 +46,7 @@ func NewListAirportsUseCase(
 	trenitalia domain.TrenitaliaProvider,
 	eurowings domain.EurowingsProvider,
 	sata domain.SATAProvider,
+	level domain.LevelProvider,
 ) *ListAirportsUseCase {
 	return &ListAirportsUseCase{
 		ryanair:    ryanair,
@@ -63,6 +65,7 @@ func NewListAirportsUseCase(
 		trenitalia: trenitalia,
 		eurowings:  eurowings,
 		sata:       sata,
+		level:      level,
 	}
 }
 
@@ -231,4 +234,17 @@ func (uc *ListAirportsUseCase) GetSATARoutesFromOrigin(ctx context.Context, orig
 		return nil, fmt.Errorf("origin is required")
 	}
 	return uc.sata.GetRoutesFromOrigin(ctx, origin)
+}
+
+// GetLevelAirports retrieves all primary and feeder airports served by LEVEL.
+func (uc *ListAirportsUseCase) GetLevelAirports(ctx context.Context) ([]domain.Airport, error) {
+	return uc.level.GetAirports(ctx)
+}
+
+// GetLevelRoutesFromOrigin retrieves direct and connecting destination airport codes on LEVEL from the given origin.
+func (uc *ListAirportsUseCase) GetLevelRoutesFromOrigin(ctx context.Context, origin string) ([]string, error) {
+	if origin == "" {
+		return nil, fmt.Errorf("origin is required")
+	}
+	return uc.level.GetRoutesFromOrigin(ctx, origin)
 }

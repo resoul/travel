@@ -21,6 +21,7 @@ type FlightDatesUseCase struct {
 	eurowings  domain.EurowingsProvider
 	transavia  domain.TransaviaProvider
 	sata       domain.SATAProvider
+	level      domain.LevelProvider
 }
 
 // NewFlightDatesUseCase creates a new FlightDatesUseCase.
@@ -37,6 +38,7 @@ func NewFlightDatesUseCase(
 	eurowings domain.EurowingsProvider,
 	transavia domain.TransaviaProvider,
 	sata domain.SATAProvider,
+	level domain.LevelProvider,
 ) *FlightDatesUseCase {
 	return &FlightDatesUseCase{
 		ryanair:    ryanair,
@@ -51,6 +53,7 @@ func NewFlightDatesUseCase(
 		eurowings:  eurowings,
 		transavia:  transavia,
 		sata:       sata,
+		level:      level,
 	}
 }
 
@@ -185,4 +188,20 @@ func (uc *FlightDatesUseCase) GetSATAFareCalendar(ctx context.Context, origin, d
 		return nil, fmt.Errorf("origin and destination are required")
 	}
 	return uc.sata.GetFareCalendar(ctx, origin, destination)
+}
+
+// GetLevelFlightDates returns scheduled flight dates across 365 days on LEVEL.
+func (uc *FlightDatesUseCase) GetLevelFlightDates(ctx context.Context, origin, destination string) ([]string, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.level.GetFlightDates(ctx, origin, destination)
+}
+
+// GetLevelFareCalendar returns daily lowest fares for a given route, year, and month from LEVEL.
+func (uc *FlightDatesUseCase) GetLevelFareCalendar(ctx context.Context, origin, destination string, year, month int) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.level.GetFareCalendar(ctx, origin, destination, year, month)
 }
