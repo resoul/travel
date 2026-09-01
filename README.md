@@ -52,7 +52,6 @@ travel/
 │   │   ├── transavia/
 │   │   ├── pitchup/
 │   │   ├── sata/
-│   │   ├── level/
 │   │   ├── indigo/
 │   │   ├── flytap/
 │   │   ├── cruise/
@@ -79,7 +78,6 @@ travel/
 │           ├── transavia.go
 │           ├── pitchup.go
 │           ├── sata.go
-│           ├── level.go
 │           ├── indigo.go
 │           ├── flytap.go
 │           ├── cruise.go
@@ -804,30 +802,7 @@ travel sata calendar --origin BOS --destination PDL --limit 15
 
 ---
 
-### 25. LEVEL (IAG Group Long-Haul Low-Cost)
-
-Search transatlantic routes and monthly low-fare calendars from Barcelona (`BCN`) to North America (*New York JFK, Boston, Miami, Los Angeles, San Francisco*) and South America (*Buenos Aires, Santiago de Chile*) via direct public JSON endpoints:
-
-```bash
-# 1. List all primary and feeder airports in the LEVEL network
-travel level airports
-
-# 2. List all available destinations from Barcelona hub
-travel level routes --origin BCN
-
-# 3. List scheduled flight dates across 365 days for BCN -> SCL (Santiago de Chile)
-travel level dates --origin BCN --destination SCL
-
-# 4. View monthly low-fare calendar for Barcelona (BCN) to Boston (BOS) in September 2026
-travel level calendar --origin BCN --destination BOS --year 2026 --month 9
-
-# 5. View monthly low-fare calendar for Barcelona (BCN) to New York (JFK) in September 2026
-travel level calendar --origin BCN --destination JFK --year 2026 --month 9
-```
-
----
-
-### 26. Cache Management
+### 25. Cache Management
 
 By default, all outgoing GET/GraphQL requests across providers are cached locally on disk in the `.cache` directory for **1 hour**. Repeated requests are returned instantly without making redundant network calls.
 
@@ -853,7 +828,6 @@ travel cache clear
 | **IndiGo (6E)** | ✈️ Flight | ✅ Supported | ✅ Yes | Automated JWT session token + `getfarecalendar` & `fare-radar` API |
 | **TAP Air Portugal** | ✈️ Flight | ✅ Supported | ✅ Yes | Direct Public JSON API for airports, routes, and monthly low fare calendar |
 | **Azores Airlines / SATA** | ✈️ Flight | ✅ Supported | ✅ Yes | Direct Public JSON API for airport directories, route maps, and 365-day low fare calendars |
-| **LEVEL (IAG Group)** | ✈️ Flight | ✅ Supported | ✅ Yes | Direct Public JSON API for transatlantic low fare calendars, 365-day flight schedules, and route maps |
 | **Norwegian Air Shuttle** | ✈️ Flight | ✅ Supported | ✅ Yes | Chromedp Headless Browser Live Low-Fare Calendar Extraction |
 | **Eurowings (Lufthansa Group)** | ✈️ Flight | ✅ Supported | ✅ Yes | Chromedp Headless Browser Live Airport Directory, Route Network, and Flight Schedule Dates |
 | **Transavia (Air France-KLM)** | ✈️ Flight | ✅ Supported | ✅ Yes | Chromedp Headless Browser Live Monthly Low-Fare Calendar Extraction |

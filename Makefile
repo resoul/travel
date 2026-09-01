@@ -232,22 +232,6 @@ sata-routes: ## List direct destination airport codes on Azores Airlines / SATA 
 sata-calendar: ## View Azores Airlines / SATA 365-day low-fare calendar (e.g. make sata-calendar ORIGIN=LIS DEST=PDL LIMIT=15)
 	@go run ./cmd sata calendar $(if $(ORIGIN),--origin $(ORIGIN),) $(if $(DEST),--destination $(DEST),) $(if $(LIMIT),--limit $(LIMIT),)
 
-.PHONY: level-airports
-level-airports: ## List LEVEL primary and feeder airports
-	@go run ./cmd level airports
-
-.PHONY: level-routes
-level-routes: ## List destinations on LEVEL from origin (e.g. make level-routes ORIGIN=BCN)
-	@go run ./cmd level routes $(if $(ORIGIN),--origin $(ORIGIN),)
-
-.PHONY: level-dates
-level-dates: ## List scheduled flight dates on LEVEL across 365 days (e.g. make level-dates ORIGIN=BCN DEST=SCL)
-	@go run ./cmd level dates $(if $(ORIGIN),--origin $(ORIGIN),) $(if $(DEST),--destination $(DEST),)
-
-.PHONY: level-calendar
-level-calendar: ## View LEVEL monthly low-fare calendar (e.g. make level-calendar ORIGIN=BCN DEST=JFK YEAR=2026 MONTH=9)
-	@go run ./cmd level calendar $(if $(ORIGIN),--origin $(ORIGIN),) $(if $(DEST),--destination $(DEST),) $(if $(YEAR),--year $(YEAR),) $(if $(MONTH),--month $(MONTH),)
-
 
 
 

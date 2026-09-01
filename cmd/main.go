@@ -22,7 +22,6 @@ import (
 	"github.com/resoul/travel/internal/infrastructure/hipcamp"
 	"github.com/resoul/travel/internal/infrastructure/imoova"
 	"github.com/resoul/travel/internal/infrastructure/indigo"
-	"github.com/resoul/travel/internal/infrastructure/level"
 	"github.com/resoul/travel/internal/infrastructure/movacar"
 	"github.com/resoul/travel/internal/infrastructure/norwegian"
 	"github.com/resoul/travel/internal/infrastructure/obilet"
@@ -82,12 +81,11 @@ func main() {
 	hipcampClient := hipcamp.NewClient(cachedTransport)
 	campspaceClient := campspace.NewClient(cachedTransport)
 	sataClient := sata.NewClient(cachedTransport)
-	levelClient := level.NewClient(cachedTransport)
 
 	// 3. Use Case Layer (Application Business Logic)
 	searchUC := usecase.NewSearchFlightsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, driivemeClient, cruiseClient, agodaClient, tripClient, trenitaliaClient, obiletClient, pitchupClient, hipcampClient, campspaceClient)
-	airportsUC := usecase.NewListAirportsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, driivemeClient, flytapClient, agodaClient, tictactripClient, trenitaliaClient, eurowingsClient, sataClient, levelClient)
-	datesUC := usecase.NewFlightDatesUseCase(ryanairClient, voloteaClient, vuelingClient, airbalticClient, flyoneClient, indigoClient, flytapClient, tictactripClient, norwegianClient, eurowingsClient, transaviaClient, sataClient, levelClient)
+	airportsUC := usecase.NewListAirportsUseCase(ryanairClient, wizzairClient, voloteaClient, vuelingClient, flixbusClient, airbalticClient, flyoneClient, movacarClient, imoovaClient, driivemeClient, flytapClient, agodaClient, tictactripClient, trenitaliaClient, eurowingsClient, sataClient)
+	datesUC := usecase.NewFlightDatesUseCase(ryanairClient, voloteaClient, vuelingClient, airbalticClient, flyoneClient, indigoClient, flytapClient, tictactripClient, norwegianClient, eurowingsClient, transaviaClient, sataClient)
 
 	// 4. Transport Layer (CLI)
 	presenter := cli.NewPresenter(os.Stdout)

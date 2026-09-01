@@ -56,7 +56,6 @@ func NewCLI(
 	rootCmd.AddCommand(newHipcampCmd(searchUC, presenter))
 	rootCmd.AddCommand(newCampspaceCmd(searchUC, presenter))
 	rootCmd.AddCommand(newSATACmd(airportsUC, datesUC, presenter))
-	rootCmd.AddCommand(newLevelCmd(airportsUC, datesUC, presenter))
 
 	if fileCache != nil {
 		rootCmd.AddCommand(newCacheCmd(fileCache, cacheDir))

@@ -182,11 +182,3 @@ type SATAProvider interface {
 	GetRoutesFromOrigin(ctx context.Context, origin string) ([]string, error)
 	GetFareCalendar(ctx context.Context, origin, destination string) ([]FlightOffer, error)
 }
-
-// LevelProvider defines operations for LEVEL (IAG Group long-haul low-cost airline).
-type LevelProvider interface {
-	GetAirports(ctx context.Context) ([]Airport, error)
-	GetRoutesFromOrigin(ctx context.Context, origin string) ([]string, error)
-	GetFlightDates(ctx context.Context, origin, destination string) ([]string, error)
-	GetFareCalendar(ctx context.Context, origin, destination string, year, month int) ([]FlightOffer, error)
-}
