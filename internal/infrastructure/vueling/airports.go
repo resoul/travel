@@ -1,71 +1,96 @@
 package vueling
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/resoul/travel/internal/domain"
 )
 
-// GetAirports retrieves all active airports in the Vueling network via AirTRFX.
+const (
+	stationsCDNURL  = "https://tickets.vueling.com/assets/1303296/stations/en-GB.json"
+	countriesCDNURL = "https://tickets.vueling.com/assets/1303296/countries/en-GB.json"
+)
+
+// GetAirports retrieves all active airports in the Vueling network via public CDN.
 func (c *Client) GetAirports(ctx context.Context) ([]domain.Airport, error) {
-	url := fmt.Sprintf("%s/hangar-service/v2/vy/airports/search", airtrfxBaseURL)
-
-	payload := map[string]any{
-		"outputFields": []string{"locationLabel", "name", "cityName", "country", "iataCode"},
-		"setting": map[string]string{
-			"airportSource": "TRFX",
-			"routeSource":   "TRFX",
-		},
-		"sortingDetails": []map[string]string{
-			{"field": "cityName", "order": "ASC"},
-		},
-		"from":     0,
-		"size":     6000,
-		"language": "en",
-		"routeOption": map[string]string{
-			"airportType": "ORIGIN",
-		},
-	}
-
-	bodyBytes, err := json.Marshal(payload)
+	// 1. Fetch countries
+	reqCountries, err := http.NewRequestWithContext(ctx, http.MethodGet, countriesCDNURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal airports payload: %w", err)
+		return nil, fmt.Errorf("failed to create countries request: %w", err)
 	}
+	reqCountries.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(bodyBytes))
+	respCountries, err := c.http.Do(reqCountries)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create airports request: %w", err)
+		return nil, fmt.Errorf("failed to fetch vueling countries: %w", err)
+	}
+	defer respCountries.Body.Close()
+
+	countryMap := make(map[string]string)
+	if respCountries.StatusCode == http.StatusOK {
+		var countriesDTO []countryItemDTO
+		if err := json.NewDecoder(respCountries.Body).Decode(&countriesDTO); err == nil {
+			for _, c := range countriesDTO {
+				countryMap[strings.ToUpper(c.CountryCode)] = c.Name
+			}
+		}
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("em-api-key", c.apiKey)
-	req.Header.Set("Origin", "https://www.vueling.com")
-	req.Header.Set("Referer", "https://www.vueling.com/")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-
-	resp, err := c.http.Do(req)
+	// 2. Fetch stations
+	reqStations, err := http.NewRequestWithContext(ctx, http.MethodGet, stationsCDNURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch vueling airports: %w", err)
+		return nil, fmt.Errorf("failed to create stations request: %w", err)
 	}
-	defer resp.Body.Close()
+	reqStations.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("vueling airports API error: status %d", resp.StatusCode)
+	respStations, err := c.http.Do(reqStations)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch vueling stations: %w", err)
+	}
+	defer respStations.Body.Close()
+
+	if respStations.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("vueling stations API error: status %d", respStations.StatusCode)
 	}
 
-	var dtos []airtrfxAirportDTO
-	if err := json.NewDecoder(resp.Body).Decode(&dtos); err != nil {
-		return nil, fmt.Errorf("failed to decode vueling airports: %w", err)
+	var stationDTOs []stationItemDTO
+	if err := json.NewDecoder(respStations.Body).Decode(&stationDTOs); err != nil {
+		return nil, fmt.Errorf("failed to decode vueling stations: %w", err)
 	}
 
-	airports := make([]domain.Airport, 0, len(dtos))
-	for _, dto := range dtos {
-		airports = append(airports, dto.toDomain())
+	airports := make([]domain.Airport, 0, len(stationDTOs))
+	for _, s := range stationDTOs {
+		if s.InActive || s.StationCode == "" {
+			continue
+		}
+
+		countryCode := strings.ToUpper(s.LocationDetails.CountryCode)
+		countryName := countryMap[countryCode]
+		if countryName == "" {
+			countryName = countryCode
+		}
+
+		cityName := s.ShortName
+		if cityName == "" {
+			cityName = s.FullName
+		}
+
+		airports = append(airports, domain.Airport{
+			Code: strings.ToUpper(s.StationCode),
+			Name: s.FullName,
+			City: domain.City{
+				Name: cityName,
+			},
+			Country: domain.Country{
+				Code: countryCode,
+				Name: countryName,
+			},
+		})
 	}
 
 	sort.Slice(airports, func(i, j int) bool {

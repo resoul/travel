@@ -61,6 +61,10 @@ func (c *Client) SearchFlights(ctx context.Context, criteria domain.FlightSearch
 			}
 		}
 
+		if criteria.Adults > 1 {
+			offer.Price.Amount *= float64(criteria.Adults)
+		}
+
 		results = append(results, offer)
 	}
 

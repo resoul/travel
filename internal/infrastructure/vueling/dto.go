@@ -15,6 +15,30 @@ type authResponseDTO struct {
 	Expiration  int    `json:"expiration"`
 }
 
+// --- CDN Station & Country DTOs ---
+
+type stationLocationDetailsDTO struct {
+	CityCode    string `json:"cityCode"`
+	CountryCode string `json:"countryCode"`
+}
+
+type stationItemDTO struct {
+	StationCode     string                    `json:"stationCode"`
+	FullName        string                    `json:"fullName"`
+	ShortName       string                    `json:"shortName"`
+	IcaoCode        string                    `json:"icaoCode"`
+	Allowed         bool                      `json:"allowed"`
+	InActive        bool                      `json:"inActive"`
+	LocationDetails stationLocationDetailsDTO `json:"locationDetails"`
+}
+
+type countryItemDTO struct {
+	CountryCode  string `json:"countryCode"`
+	CountryCode3 string `json:"countryCode3C"`
+	Name         string `json:"name"`
+	InActive     bool   `json:"inActive"`
+}
+
 // --- AirTRFX Airports DTO ---
 
 type cityNameDTO struct {

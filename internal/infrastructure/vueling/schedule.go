@@ -1,22 +1,26 @@
 package vueling
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/chromedp/cdproto/runtime"
+	"github.com/chromedp/chromedp"
 	"github.com/resoul/travel/internal/domain"
 )
 
-// GetSchedule fetches all scheduled flights between origin and destination using Vueling AvailabilityServices.
+// GetSchedule fetches all scheduled flights between origin and destination using browser session automation.
 func (c *Client) GetSchedule(ctx context.Context, origin, destination string, year, month, monthsRange int) ([]domain.FlightOffer, error) {
-	origin = strings.ToUpper(origin)
-	destination = strings.ToUpper(destination)
+	origin = strings.ToUpper(strings.TrimSpace(origin))
+	destination = strings.ToUpper(strings.TrimSpace(destination))
+
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
 
 	now := time.Now()
 	if year <= 0 {
@@ -29,53 +33,84 @@ func (c *Client) GetSchedule(ctx context.Context, origin, destination string, ye
 		monthsRange = 12
 	}
 
-	token, err := c.GetToken(ctx)
+	url := "https://tickets.vueling.com"
+
+	jsQuery := fmt.Sprintf(`
+		(async () => {
+			try {
+				let token = "";
+				const keys = Object.keys(sessionStorage).concat(Object.keys(localStorage));
+				for (const k of keys) {
+					const val = sessionStorage.getItem(k) || localStorage.getItem(k);
+					if (val && val.includes("accessToken")) {
+						try {
+							const parsed = JSON.parse(val);
+							if (parsed.accessToken) {
+								token = parsed.accessToken;
+								break;
+							}
+						} catch (e) {}
+					}
+				}
+
+				const payload = {
+					originCode: "%s",
+					destinationCode: "%s",
+					year: %d,
+					month: %d,
+					currencyCode: "EUR",
+					monthsRange: %d,
+					flightType: "OW"
+				};
+
+				const resp = await fetch('https://ams.vueling.com/avy/v3/AvailabilityServices/allFlights', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + token
+					},
+					body: JSON.stringify(payload)
+				});
+
+				if (!resp.ok) {
+					return JSON.stringify({ error: "HTTP " + resp.status });
+				}
+
+				const data = await resp.json();
+				return JSON.stringify(data);
+			} catch (e) {
+				return JSON.stringify({ error: e.message });
+			}
+		})()
+	`, origin, destination, year, month, monthsRange)
+
+	var jsOutput string
+	err := c.executeInBrowser(ctx,
+		chromedp.Navigate(url),
+		chromedp.Sleep(4*time.Second),
+		chromedp.Evaluate(jsQuery, &jsOutput, func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
+			return p.WithAwaitPromise(true)
+		}),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get vueling auth token for schedule: %w", err)
+		return nil, fmt.Errorf("failed to execute vueling schedule search in browser: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/avy/v3/AvailabilityServices/allFlights", amsBaseURL)
-
-	payload := map[string]any{
-		"originCode":      origin,
-		"destinationCode": destination,
-		"year":            year,
-		"month":           month,
-		"currencyCode":    "EUR",
-		"monthsRange":     monthsRange,
-		"flightType":      "OW",
-	}
-
-	bodyBytes, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal availability payload: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(bodyBytes))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create availability request: %w", err)
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch vueling availability: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("vueling availability API error: status %d", resp.StatusCode)
+	if strings.Contains(jsOutput, `"error"`) {
+		return nil, fmt.Errorf("vueling availability API error: %s", jsOutput)
 	}
 
 	var rawFlights []availabilityFlightDTO
-	if err := json.NewDecoder(resp.Body).Decode(&rawFlights); err != nil {
-		return nil, fmt.Errorf("failed to decode vueling availability: %w", err)
+	if err := json.Unmarshal([]byte(jsOutput), &rawFlights); err != nil {
+		var objMap map[string][]availabilityFlightDTO
+		if errMap := json.Unmarshal([]byte(jsOutput), &objMap); errMap == nil {
+			rawFlights = objMap["flightOutboundList"]
+		} else {
+			return nil, fmt.Errorf("failed to decode vueling availability: %w", err)
+		}
 	}
 
-	var offers []domain.FlightOffer
+	offers := make([]domain.FlightOffer, 0, len(rawFlights))
 	for _, f := range rawFlights {
 		if !f.IsAvailableDay && f.Price <= 0 {
 			continue
