@@ -14,6 +14,7 @@ type ListAirportsUseCase struct {
 	volotea    domain.VoloteaProvider
 	vueling    domain.VuelingProvider
 	flixbus    domain.FlixBusProvider
+	flixtrain  domain.FlixTrainProvider
 	airbaltic  domain.AirBalticProvider
 	flyone     domain.FlyOneProvider
 	movacar    domain.MovacarProvider
@@ -25,6 +26,8 @@ type ListAirportsUseCase struct {
 	trenitalia domain.TrenitaliaProvider
 	eurowings  domain.EurowingsProvider
 	sata       domain.SATAProvider
+	alsa       domain.AlsaProvider
+	itabus     domain.ItaBusProvider
 }
 
 // NewListAirportsUseCase creates a new ListAirportsUseCase.
@@ -34,6 +37,7 @@ func NewListAirportsUseCase(
 	volotea domain.VoloteaProvider,
 	vueling domain.VuelingProvider,
 	flixbus domain.FlixBusProvider,
+	flixtrain domain.FlixTrainProvider,
 	airbaltic domain.AirBalticProvider,
 	flyone domain.FlyOneProvider,
 	movacar domain.MovacarProvider,
@@ -45,6 +49,8 @@ func NewListAirportsUseCase(
 	trenitalia domain.TrenitaliaProvider,
 	eurowings domain.EurowingsProvider,
 	sata domain.SATAProvider,
+	alsa domain.AlsaProvider,
+	itabus domain.ItaBusProvider,
 ) *ListAirportsUseCase {
 	return &ListAirportsUseCase{
 		ryanair:    ryanair,
@@ -52,6 +58,7 @@ func NewListAirportsUseCase(
 		volotea:    volotea,
 		vueling:    vueling,
 		flixbus:    flixbus,
+		flixtrain:  flixtrain,
 		airbaltic:  airbaltic,
 		flyone:     flyone,
 		movacar:    movacar,
@@ -63,6 +70,8 @@ func NewListAirportsUseCase(
 		trenitalia: trenitalia,
 		eurowings:  eurowings,
 		sata:       sata,
+		alsa:       alsa,
+		itabus:     itabus,
 	}
 }
 
@@ -126,6 +135,19 @@ func (uc *ListAirportsUseCase) GetFlixBusRoutes(ctx context.Context, cityQueryOr
 		return nil, fmt.Errorf("city name or UUID is required")
 	}
 	return uc.flixbus.GetReachable(ctx, cityQueryOrID, limit)
+}
+
+// GetFlixTrainCities returns FlixTrain cities matching a query.
+func (uc *ListAirportsUseCase) GetFlixTrainCities(ctx context.Context, query string) ([]domain.Airport, error) {
+	return uc.flixtrain.GetCities(ctx, query)
+}
+
+// GetFlixTrainRoutes returns reachable destinations from a city in FlixTrain network.
+func (uc *ListAirportsUseCase) GetFlixTrainRoutes(ctx context.Context, cityQueryOrID string, limit int) ([]domain.Airport, error) {
+	if cityQueryOrID == "" {
+		return nil, fmt.Errorf("city name or UUID is required")
+	}
+	return uc.flixtrain.GetReachable(ctx, cityQueryOrID, limit)
 }
 
 // GetAirBalticAirports returns all primary airports in airBaltic network.
@@ -231,4 +253,30 @@ func (uc *ListAirportsUseCase) GetSATARoutesFromOrigin(ctx context.Context, orig
 		return nil, fmt.Errorf("origin is required")
 	}
 	return uc.sata.GetRoutesFromOrigin(ctx, origin)
+}
+
+// GetAlsaOrigins retrieves all available ALSA departure stations.
+func (uc *ListAirportsUseCase) GetAlsaOrigins(ctx context.Context) ([]domain.Airport, error) {
+	return uc.alsa.GetOrigins(ctx)
+}
+
+// GetAlsaDestinations retrieves available destinations from a given ALSA station.
+func (uc *ListAirportsUseCase) GetAlsaDestinations(ctx context.Context, originStationID string) ([]domain.Airport, error) {
+	if originStationID == "" {
+		return nil, fmt.Errorf("origin station ID is required")
+	}
+	return uc.alsa.GetDestinations(ctx, originStationID)
+}
+
+// GetItaBusStations retrieves all ItaBus cities and stations.
+func (uc *ListAirportsUseCase) GetItaBusStations(ctx context.Context) ([]domain.Airport, error) {
+	return uc.itabus.GetStations(ctx)
+}
+
+// GetItaBusFareCalendar retrieves available dates and minimum fares between two ItaBus cities.
+func (uc *ListAirportsUseCase) GetItaBusFareCalendar(ctx context.Context, origin, destination, startDate, endDate string) ([]domain.FlightOffer, error) {
+	if origin == "" || destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+	return uc.itabus.GetFareCalendar(ctx, origin, destination, startDate, endDate)
 }

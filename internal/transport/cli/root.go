@@ -36,6 +36,7 @@ func NewCLI(
 	rootCmd.AddCommand(newVoloteaCmd(searchUC, airportsUC, datesUC, presenter))
 	rootCmd.AddCommand(newVuelingCmd(searchUC, airportsUC, datesUC, presenter))
 	rootCmd.AddCommand(newFlixBusCmd(searchUC, airportsUC, presenter))
+	rootCmd.AddCommand(newFlixTrainCmd(searchUC, airportsUC, presenter))
 	rootCmd.AddCommand(newAirBalticCmd(searchUC, airportsUC, datesUC, presenter))
 	rootCmd.AddCommand(newFlyOneCmd(searchUC, airportsUC, datesUC, presenter))
 	rootCmd.AddCommand(newMovacarCmd(searchUC, airportsUC, presenter))
@@ -56,6 +57,8 @@ func NewCLI(
 	rootCmd.AddCommand(newHipcampCmd(searchUC, presenter))
 	rootCmd.AddCommand(newCampspaceCmd(searchUC, presenter))
 	rootCmd.AddCommand(newSATACmd(airportsUC, datesUC, presenter))
+	rootCmd.AddCommand(newAlsaCmd(searchUC, airportsUC, presenter))
+	rootCmd.AddCommand(newItaBusCmd(searchUC, airportsUC, presenter))
 
 	if fileCache != nil {
 		rootCmd.AddCommand(newCacheCmd(fileCache, cacheDir))

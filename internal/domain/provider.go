@@ -182,3 +182,24 @@ type SATAProvider interface {
 	GetRoutesFromOrigin(ctx context.Context, origin string) ([]string, error)
 	GetFareCalendar(ctx context.Context, origin, destination string) ([]FlightOffer, error)
 }
+
+// AlsaProvider defines operations for ALSA Spanish bus network (HTTP API + browser automation).
+type AlsaProvider interface {
+	SearchTrips(ctx context.Context, criteria FlightSearchCriteria) ([]FlightOffer, error)
+	GetOrigins(ctx context.Context) ([]Airport, error)
+	GetDestinations(ctx context.Context, originStationID string) ([]Airport, error)
+}
+
+// ItaBusProvider defines operations for ItaBus Italian bus network (REST API).
+type ItaBusProvider interface {
+	SearchTrips(ctx context.Context, criteria FlightSearchCriteria) ([]FlightOffer, error)
+	GetStations(ctx context.Context) ([]Airport, error)
+	GetFareCalendar(ctx context.Context, origin, destination, startDate, endDate string) ([]FlightOffer, error)
+}
+
+// FlixTrainProvider defines operations for FlixTrain European train network.
+type FlixTrainProvider interface {
+	SearchTrips(ctx context.Context, criteria FlightSearchCriteria) ([]FlightOffer, error)
+	GetCities(ctx context.Context, query string) ([]Airport, error)
+	GetReachable(ctx context.Context, cityQueryOrID string, limit int) ([]Airport, error)
+}

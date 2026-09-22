@@ -14,6 +14,7 @@ type SearchFlightsUseCase struct {
 	volotea    domain.VoloteaProvider
 	vueling    domain.VuelingProvider
 	flixbus    domain.FlixBusProvider
+	flixtrain  domain.FlixTrainProvider
 	airbaltic  domain.AirBalticProvider
 	flyone     domain.FlyOneProvider
 	movacar    domain.MovacarProvider
@@ -27,6 +28,8 @@ type SearchFlightsUseCase struct {
 	pitchup    domain.PitchupProvider
 	hipcamp    domain.HipcampProvider
 	campspace  domain.CampspaceProvider
+	alsa       domain.AlsaProvider
+	itabus     domain.ItaBusProvider
 }
 
 // NewSearchFlightsUseCase creates a new SearchFlightsUseCase.
@@ -36,6 +39,7 @@ func NewSearchFlightsUseCase(
 	volotea domain.VoloteaProvider,
 	vueling domain.VuelingProvider,
 	flixbus domain.FlixBusProvider,
+	flixtrain domain.FlixTrainProvider,
 	airbaltic domain.AirBalticProvider,
 	flyone domain.FlyOneProvider,
 	movacar domain.MovacarProvider,
@@ -49,6 +53,8 @@ func NewSearchFlightsUseCase(
 	pitchup domain.PitchupProvider,
 	hipcamp domain.HipcampProvider,
 	campspace domain.CampspaceProvider,
+	alsa domain.AlsaProvider,
+	itabus domain.ItaBusProvider,
 ) *SearchFlightsUseCase {
 	return &SearchFlightsUseCase{
 		ryanair:    ryanair,
@@ -56,6 +62,7 @@ func NewSearchFlightsUseCase(
 		volotea:    volotea,
 		vueling:    vueling,
 		flixbus:    flixbus,
+		flixtrain:  flixtrain,
 		airbaltic:  airbaltic,
 		flyone:     flyone,
 		movacar:    movacar,
@@ -69,6 +76,8 @@ func NewSearchFlightsUseCase(
 		pitchup:    pitchup,
 		hipcamp:    hipcamp,
 		campspace:  campspace,
+		alsa:       alsa,
+		itabus:     itabus,
 	}
 }
 
@@ -121,6 +130,15 @@ func (uc *SearchFlightsUseCase) SearchFlixBus(ctx context.Context, criteria doma
 	}
 
 	return uc.flixbus.SearchTrips(ctx, criteria)
+}
+
+// SearchFlixTrain searches FlixTrain trips matching given criteria.
+func (uc *SearchFlightsUseCase) SearchFlixTrain(ctx context.Context, criteria domain.FlightSearchCriteria) ([]domain.FlightOffer, error) {
+	if criteria.Origin == "" || criteria.Destination == "" {
+		return nil, fmt.Errorf("origin and destination are required")
+	}
+
+	return uc.flixtrain.SearchTrips(ctx, criteria)
 }
 
 // SearchAirBaltic searches airBaltic flights matching given criteria.
@@ -224,4 +242,14 @@ func (uc *SearchFlightsUseCase) SearchHipcampSpots(ctx context.Context, criteria
 // SearchCampspaceSpots searches sustainable micro-camping and nature spots on Campspace.
 func (uc *SearchFlightsUseCase) SearchCampspaceSpots(ctx context.Context, criteria domain.CampspaceSearchCriteria) ([]domain.FlightOffer, error) {
 	return uc.campspace.SearchSpots(ctx, criteria)
+}
+
+// SearchAlsa searches ALSA Spanish bus network journeys matching given criteria.
+func (uc *SearchFlightsUseCase) SearchAlsa(ctx context.Context, criteria domain.FlightSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.alsa.SearchTrips(ctx, criteria)
+}
+
+// SearchItaBus searches ItaBus Italian bus network journeys matching given criteria.
+func (uc *SearchFlightsUseCase) SearchItaBus(ctx context.Context, criteria domain.FlightSearchCriteria) ([]domain.FlightOffer, error) {
+	return uc.itabus.SearchTrips(ctx, criteria)
 }
